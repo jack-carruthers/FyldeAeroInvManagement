@@ -64,15 +64,21 @@ def search(term):
     cursor.execute("SELECT * FROM inventory WHERE itemName LIKE ?", ('%' + term + '%',))
     return cursor.fetchall()
 
+def centreWindow(window, width, height):    # Fix found for ".eval('tk::PlaceWindow . center')" not centreing properly on modern tkinter
+    window.update_idletasks()
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width // 2) - (width // 2)
+    y = (screen_height // 2) - (height // 2)
+    window.geometry(f'{width}x{height}+{x}+{y}')
 
 # Login 
 
 def LoginWindow():
     login_window = tk.Tk()  
     login_window.title("Login")
-    login_window.geometry("300x260")
+    centreWindow(login_window, 300, 260)
     login_window.resizable(False, False)
-    login_window.eval('tk::PlaceWindow . center')
 
     header = tk.Label(
         login_window,
@@ -124,8 +130,7 @@ def InventoryWindow(username):
     inv_window.title("Fylde Aero Inventory System")
     inv_window.geometry("800x600")
     inv_window.resizable(False, False)
-    inv_window.eval('tk::PlaceWindow . center')
-
+    centreWindow(inv_window, 800, 600)
     header = tk.Label(
         inv_window,
         text="Fylde Aero Inventory System - Hello " + username,
@@ -152,8 +157,8 @@ def InventoryWindow(username):
 
     refresh_tree()
 
-    inv_window.mainloop() 
 
+LoginWindow.mainloop() 
 
 # Run
 LoginWindow()
