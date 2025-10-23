@@ -59,3 +59,56 @@ def search(term):
     cursor.execute("SELECT * FROM inventory WHERE itemName LIKE ?", ('%' + term + '%',))
     return cursor.fetchall()
 
+
+# Login 
+
+def LoginWindow():
+    login_window = tk.Tk()  
+    login_window.title("Login")
+    login_window.geometry("300x260")
+    login_window.resizable(False, False)
+    login_window.eval('tk::PlaceWindow . center')
+
+    header = tk.Label(
+        login_window,
+        text="Welcome to Aero Inventory",
+        bg="#0078D7",
+        fg="white",
+        font=("Arial", 16, "bold"),
+        pady=15
+    )
+    header.pack(fill=tk.X)
+
+    tk.Label(login_window, text="Username:", font=("Arial", 12)).pack(pady=(20,5))
+    username_entry = tk.Entry(login_window, font=("Arial", 12))
+    username_entry.pack(padx=50, fill=tk.X)
+
+    tk.Label(login_window, text="Password:", font=("Arial", 12)).pack(pady=(10,5))
+    credential_entry = tk.Entry(login_window, show="*", font=("Arial", 12))
+    credential_entry.pack(padx=50, fill=tk.X)
+
+    def loginTry():
+        if login(username_entry.get(), credential_entry.get()):
+            messagebox.showinfo("Login Successful", "Welcome to Fylde Aero Inventory System")
+            login_window.destroy()
+            #InventoryWindow() 
+        else:
+            messagebox.showerror("Login Failed", "Invalid credentials")
+
+    
+
+    login_btn = tk.Button(
+        login_window,
+        text="Login",
+        command=loginTry,
+        bg="#0078D7",
+        fg="white",
+        font=("Arial", 10, "bold")
+    )
+    login_btn.pack(pady=17, padx=100, fill=tk.X)
+
+    login_window.mainloop()
+
+
+# Start the program
+LoginWindow()
