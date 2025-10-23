@@ -61,7 +61,7 @@ def deleteItem(item_id):
     conn.commit()
 
 def search(term):
-    cursor.execute("SELECT * FROM inventory WHERE itemName LIKE ?", ('%' + term + '%',))
+    cursor.execute("SELECT * FROM inventory WHERE itemName LIKE ? or BatchNumber LIKE ?", ('%' + term + '%', '%' + term + '%'))
     return cursor.fetchall()
 
 def centreWindow(window, width, height):    # Fix found for ".eval('tk::PlaceWindow . center')" not centreing properly on modern tkinter
@@ -72,7 +72,7 @@ def centreWindow(window, width, height):    # Fix found for ".eval('tk::PlaceWin
     y = (screen_height // 2) - (height // 2)
     window.geometry(f'{width}x{height}+{x}+{y}')
 
-# Login 
+# Login ----------
 
 def LoginWindow():
     login_window = tk.Tk()  
@@ -123,23 +123,47 @@ def LoginWindow():
     login_window.mainloop()
 
 
-# Inventory
+# Inventory ----------
 
 def InventoryWindow(username):
     inv_window = tk.Tk()
     inv_window.title("Fylde Aero Inventory System")
-    inv_window.geometry("800x600")
-    inv_window.resizable(False, False)
-    centreWindow(inv_window, 800, 600)
-    header = tk.Label(
-        inv_window,
+    centreWindow(inv_window, 800, 550)
+
+    header_frame = tk.Frame(inv_window, bg="#0078D7", pady=15)
+    header_frame.pack(fill=tk.X)
+
+    
+    header_label = tk.Label(
+        header_frame,
         text="Fylde Aero Inventory System - Hello " + username,
         bg="#0078D7",
         fg="white",
-        font=("Arial", 16, "bold"),
-        pady=15
+        font=("Arial", 16, "bold")
     )
-    header.pack(fill=tk.X)
+    header_label.pack(side=tk.LEFT, padx=10) # ensures header is on left
+
+    # search bar on the right
+    search_entry = tk.Entry(header_frame, font=("Arial", 12))
+    search_entry.pack(side=tk.RIGHT, padx=(0,5))
+
+    # Search Functionality
+    def do_search():
+        term = search_entry.get()
+        for row in tree.get_children():
+            tree.delete(row)
+        for item in search(term):
+            tree.insert('', tk.END, values=item)
+
+    search_btn = tk.Button(
+        header_frame, 
+        text="Go", 
+        command=do_search,
+        bg="white", 
+        fg="#0078D7", 
+        font=("Arial", 10, "bold")
+    )
+    search_btn.pack(side=tk.RIGHT, padx=(5,10))
 
     # Treeview for inventory table
     columns = ("ID", "Item Name", "Quantity", "Batch Number", "Location")
@@ -147,7 +171,8 @@ def InventoryWindow(username):
     for col in columns:
         tree.heading(col, text=col, anchor=tk.CENTER)
         tree.column(col, width=150, anchor=tk.CENTER)
-    tree.pack(fill=tk.BOTH, expand=True)
+    tree.pack(fill=tk.X, expand=False)
+    tree.config(height=20)  # sets visible rows, tweak this number as needed
 
     def refresh_tree():
         for row in tree.get_children():
@@ -158,7 +183,79 @@ def InventoryWindow(username):
     refresh_tree()
 
 
-LoginWindow.mainloop() 
+    # Add Functionality 
+
+    def add_item():
+        add_window = tk.Toplevel(inv_window)
+        add_window.title("Add Item")
+        centreWindow(add_window, 300, 400)
+        add_window.resizable(False, False)
+
+        header = tk.Label(   # I reused header from login window  
+            add_window,
+            text="Welcome to Aero Inventory",
+            bg="#0078D7",
+            fg="white",
+            font=("Arial", 16, "bold"),
+            pady=15
+        )
+        header.pack(fill=tk.X)
+
+        tk.Label(add_window, text="Item Name:", font=("Arial", 12)).pack(pady=(20,5))
+        itemName_entry = tk.Entry(add_window, font=("Arial", 12))
+        itemName_entry.pack(padx=50, fill=tk.X)
+
+        tk.Label(add_window, text="Quantity:", font=("Arial", 12)).pack(pady=(10,5))
+        quantity_entry = tk.Entry(add_window, font=("Arial", 12))
+        quantity_entry.pack(padx=50, fill=tk.X)
+
+        tk.Label(add_window, text="Batch Number:", font=("Arial", 12)).pack(pady=(10,5))
+        BatchNumber_entry = tk.Entry(add_window, font=("Arial", 12))
+        BatchNumber_entry.pack(padx=50, fill=tk.X)
+
+        tk.Label(add_window, text="Location:", font=("Arial", 12)).pack(pady=(10,5))
+        location_entry = tk.Entry(add_window, font=("Arial", 12))
+        location_entry.pack(padx=50, fill=tk.X)
+
+        def save_item():
+            itemName = itemName_entry.get()
+            quantity = quantity_entry.get()
+            BatchNumber = BatchNumber_entry.get()
+            location = location_entry.get()
+            addItem(itemName, quantity, BatchNumber, location)
+            refresh_tree()
+            add_window.destroy()
+
+        save_btn = tk.Button(
+            add_window,
+            text="Save",
+            command=save_item,
+            bg="#0078D7",
+            fg="white",
+            font=("Arial", 10, "bold")
+        )
+        save_btn.pack(pady=20, padx=100, fill=tk.X)
+
+
+    # Delete Functionality
+
+    def deleteSelected():
+        selected = tree.selection()
+        if not selected:
+            messagebox.showwarning("Warning", "You have not selected item to delete.")
+            return
+        item = tree.item(selected[0])
+        item_id = item['values'][0]  # should select id 
+        deleteItem(item_id)
+        refresh_tree()
+        messagebox.showinfo("Deleted", "Item deleted successfully.")
+
+    # Buttons 
+    btn_frame = tk.Frame(inv_window)
+    btn_frame.pack(pady=10)
+
+    tk.Button(btn_frame, text="Add Item", command=add_item, bg="#0078D7", fg="white", font=("Arial", 10, "bold")).grid(row=0, column=0, padx=5, pady=5)
+    tk.Button(btn_frame, text="Delete Item", command=deleteSelected, bg="#0078D7", fg="white", font=("Arial", 10, "bold")).grid(row=0, column=3, padx=5, pady=5)
 
 # Run
 LoginWindow()
