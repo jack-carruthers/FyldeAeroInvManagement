@@ -91,7 +91,7 @@ def LoginWindow():
         if login(username_entry.get(), credential_entry.get()):
             messagebox.showinfo("Login Successful", "Welcome to Fylde Aero Inventory System")
             login_window.destroy()
-            #InventoryWindow() 
+            InventoryWindow() 
         else:
             messagebox.showerror("Login Failed", "Invalid credentials")
 
@@ -110,5 +110,43 @@ def LoginWindow():
     login_window.mainloop()
 
 
-# Start the program
+# Inventory
+
+def InventoryWindow():
+    inv_window = tk.Tk()
+    inv_window.title("Fylde Aero Inventory System")
+    inv_window.geometry("800x600")
+    inv_window.resizable(False, False)
+    inv_window.eval('tk::PlaceWindow . center')
+
+    header = tk.Label(
+        inv_window,
+        text="Fylde Aero Inventory System",
+        bg="#0078D7",
+        fg="white",
+        font=("Arial", 16, "bold"),
+        pady=15
+    )
+    header.pack(fill=tk.X)
+
+    # Treeview for inventory table
+    columns = ("ID", "Item Name", "Quantity", "Batch Number", "Location")
+    tree = ttk.Treeview(inv_window, columns=columns, show='headings')
+    for col in columns:
+        tree.heading(col, text=col)
+        tree.column(col, width=150)
+    tree.pack(fill=tk.BOTH, expand=True)
+
+    def refresh_tree():
+        for row in tree.get_children():
+            tree.delete(row)
+        for item in loadInv():
+            tree.insert('', tk.END, values=item)
+
+    refresh_tree()
+
+    inv_window.mainloop() 
+
+
+# Run
 LoginWindow()
