@@ -29,6 +29,11 @@ CREATE TABLE IF NOT EXISTS inventory (
 )
 ''')
 
+# Test Data
+cursor.execute("INSERT OR IGNORE INTO inventory (itemName, quantity, BatchNumber, location) VALUES (?, ?, ?, ?)", ('Widget A', 100, 'BATCH001', 'Warehouse 1'))
+cursor.execute("INSERT OR IGNORE INTO inventory (itemName, quantity, BatchNumber, location) VALUES (?, ?, ?, ?)", ('Widget B', 200, 'BATCH002', 'Warehouse 2'))
+cursor.execute("INSERT OR IGNORE INTO inventory (itemName, quantity, BatchNumber, location) VALUES (?, ?, ?, ?)", ('Widget C', 300, 'BATCH003', 'Warehouse 3'))
+
 # Admin user 
 cursor.execute("INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)", ('admin', '123')) 
 conn.commit()
@@ -88,10 +93,12 @@ def LoginWindow():
     credential_entry.pack(padx=50, fill=tk.X)
 
     def loginTry():
-        if login(username_entry.get(), credential_entry.get()):
+        username = username_entry.get()
+        credential = credential_entry.get()
+        if login(username, credential):
             messagebox.showinfo("Login Successful", "Welcome to Fylde Aero Inventory System")
             login_window.destroy()
-            InventoryWindow() 
+            InventoryWindow(username) 
         else:
             messagebox.showerror("Login Failed", "Invalid credentials")
 
@@ -112,7 +119,7 @@ def LoginWindow():
 
 # Inventory
 
-def InventoryWindow():
+def InventoryWindow(username):
     inv_window = tk.Tk()
     inv_window.title("Fylde Aero Inventory System")
     inv_window.geometry("800x600")
@@ -121,7 +128,7 @@ def InventoryWindow():
 
     header = tk.Label(
         inv_window,
-        text="Fylde Aero Inventory System",
+        text="Fylde Aero Inventory System - Hello " + username,
         bg="#0078D7",
         fg="white",
         font=("Arial", 16, "bold"),
@@ -133,8 +140,8 @@ def InventoryWindow():
     columns = ("ID", "Item Name", "Quantity", "Batch Number", "Location")
     tree = ttk.Treeview(inv_window, columns=columns, show='headings')
     for col in columns:
-        tree.heading(col, text=col)
-        tree.column(col, width=150)
+        tree.heading(col, text=col, anchor=tk.CENTER)
+        tree.column(col, width=150, anchor=tk.CENTER)
     tree.pack(fill=tk.BOTH, expand=True)
 
     def refresh_tree():
