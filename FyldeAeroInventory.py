@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS inventory (
 )
 ''')
 
-# Test Data
+# Test Data    ----------------------------------------- DELTE WHENEVER PROGRAM IS PUT TO USE
 cursor.execute("INSERT OR IGNORE INTO inventory (itemName, quantity, BatchNumber, location) VALUES (?, ?, ?, ?)", ('Widget A', 100, 'BATCH001', 'Warehouse 1'))
 cursor.execute("INSERT OR IGNORE INTO inventory (itemName, quantity, BatchNumber, location) VALUES (?, ?, ?, ?)", ('Widget B', 200, 'BATCH002', 'Warehouse 2'))
 cursor.execute("INSERT OR IGNORE INTO inventory (itemName, quantity, BatchNumber, location) VALUES (?, ?, ?, ?)", ('Widget C', 300, 'BATCH003', 'Warehouse 3'))
@@ -63,6 +63,14 @@ def deleteItem(item_id):
 def search(term):
     cursor.execute("SELECT * FROM inventory WHERE itemName LIKE ? or BatchNumber LIKE ?", ('%' + term + '%', '%' + term + '%'))
     return cursor.fetchall()
+
+def updateItem(item_id, itemName, quantity, BatchNumber, location):
+    cursor.execute("""
+        UPDATE inventory 
+        SET itemName=?, quantity=?, BatchNumber=?, location=? 
+        WHERE id=?
+    """, (itemName, quantity, BatchNumber, location, item_id))
+    conn.commit()
 
 def centreWindow(window, width, height):    # Fix found for ".eval('tk::PlaceWindow . center')" not centreing properly on modern tkinter
     window.update_idletasks()
@@ -250,12 +258,78 @@ def InventoryWindow(username):
         refresh_tree()
         messagebox.showinfo("Deleted", "Item deleted successfully.")
 
+    def edit_item():
+        selected = tree.selection()
+        if not selected:
+            messagebox.showwarning("Warning", "You need to select an item to edit.")
+            return
+
+        item = tree.item(selected[0])
+        item_id, itemName, quantity, BatchNumber, location = item['values']
+
+        edit_window = tk.Toplevel(inv_window)
+        edit_window.title("Edit Item")
+        centreWindow(edit_window, 300, 400)
+        edit_window.resizable(False, False)
+
+        header = tk.Label(
+            edit_window,
+            text="Edit Inventory Item",
+            bg="#0078D7",
+            fg="white",
+            font=("Arial", 16, "bold"),
+            pady=15
+        )
+        header.pack(fill=tk.X)
+
+        tk.Label(edit_window, text="Item Name:", font=("Arial", 12)).pack(pady=(20,5))
+        itemName_entry = tk.Entry(edit_window, font=("Arial", 12))
+        itemName_entry.pack(padx=50, fill=tk.X)
+        itemName_entry.insert(0, itemName)
+
+        tk.Label(edit_window, text="Quantity:", font=("Arial", 12)).pack(pady=(10,5))
+        quantity_entry = tk.Entry(edit_window, font=("Arial", 12))
+        quantity_entry.pack(padx=50, fill=tk.X)
+        quantity_entry.insert(0, quantity)
+
+        tk.Label(edit_window, text="Batch Number:", font=("Arial", 12)).pack(pady=(10,5))
+        BatchNumber_entry = tk.Entry(edit_window, font=("Arial", 12))
+        BatchNumber_entry.pack(padx=50, fill=tk.X)
+        BatchNumber_entry.insert(0, BatchNumber)
+
+        tk.Label(edit_window, text="Location:", font=("Arial", 12)).pack(pady=(10,5))
+        location_entry = tk.Entry(edit_window, font=("Arial", 12))
+        location_entry.pack(padx=50, fill=tk.X)
+        location_entry.insert(0, location)
+
+        def save_edit():
+            new_itemName = itemName_entry.get()
+            new_quantity = quantity_entry.get()
+            new_BatchNumber = BatchNumber_entry.get()
+            new_location = location_entry.get()
+            updateItem(item_id, new_itemName, new_quantity, new_BatchNumber, new_location)
+            refresh_tree()
+            edit_window.destroy()
+            messagebox.showinfo("Updated", "Item updated successfully.")
+
+        save_btn = tk.Button(
+            edit_window,
+            text="Save Changes",
+            command=save_edit,
+            bg="#0078D7",
+            fg="white",
+            font=("Arial", 10, "bold")
+        )
+        save_btn.pack(pady=20, padx=100, fill=tk.X)
+
     # Buttons 
     btn_frame = tk.Frame(inv_window)
     btn_frame.pack(pady=10)
 
     tk.Button(btn_frame, text="Add Item", command=add_item, bg="#0078D7", fg="white", font=("Arial", 10, "bold")).grid(row=0, column=0, padx=5, pady=5)
-    tk.Button(btn_frame, text="Delete Item", command=deleteSelected, bg="#0078D7", fg="white", font=("Arial", 10, "bold")).grid(row=0, column=3, padx=5, pady=5)
+    tk.Button(btn_frame, text="Delete Item", command=deleteSelected, bg="#0078D7", fg="white", font=("Arial", 10, "bold")).grid(row=0, column=1, padx=5, pady=5)
+    tk.Button(btn_frame, text="Edit Item", command=edit_item, bg="#0078D7", fg="white", font=("Arial", 10, "bold")).grid(row=0, column=2, padx=5, pady=5)
+
 
 # Run
 LoginWindow()
