@@ -230,6 +230,11 @@ def InventoryWindow(username):
             quantity = quantity_entry.get()
             BatchNumber = BatchNumber_entry.get()
             location = location_entry.get()
+
+            if not itemName or not quantity or not BatchNumber or not location: ## FIX ADDED AFTER TEST PLAN FOR EMPTY FIELDS
+                messagebox.showwarning("Warning", "All fields are required.")
+                return
+
             addItem(itemName, quantity, BatchNumber, location)
             refresh_tree()
             add_window.destroy()
@@ -307,6 +312,13 @@ def InventoryWindow(username):
             new_quantity = quantity_entry.get()
             new_BatchNumber = BatchNumber_entry.get()
             new_location = location_entry.get()
+
+
+            if not new_itemName or not new_quantity or not new_BatchNumber or not new_location: ## FIX ADDED AFTER TEST PLAN FOR EMPTY FIELDS
+                messagebox.showwarning("Warning", "All fields are required.")
+                return
+            
+
             updateItem(item_id, new_itemName, new_quantity, new_BatchNumber, new_location)
             refresh_tree()
             edit_window.destroy()
